@@ -1,0 +1,138 @@
+Instructions
+1. Create EC2 Instance
+2. Create Elastic IP address and associate it
+
+
+Commands
+sudo chmod 400 wordpress-key.pem
+sudo ssh -i "wordpress-key.pem" ubuntu@ec2-3-85-239-144.compute-1.amazonaws.com 
+
+In the AWS VM
+sudo apt-get update -y
+sudo apt-get upgrade -y
+
+Install Apache2 Web Server
+sudo apt install apache2 -y
+
+Install PHP Runtime
+sudo apt install php libapache2-mod-php php-mysql -y
+
+Install mysql
+sudo apt install mysql-server -y
+
+Change mysql authentication plugin to a mysql native password
+sudo mysql -u root
+
+Change authentication plugin
+ALTER USER 'root'@localhost IDENTIFIED WITH mysql_native_password BY 'Testpassword@123';
+
+Create a seperate user other than root
+CREATE USER 'wp_user'@localhost IDENTIFIED BY 'Testpassword@123';
+
+Create a DB for wordpress
+CREATE DATABASE wp;
+
+Assign all priviledges on the newly cretaed DB to the wp_user;
+GRANT ALL PRIVILEGES ON wp.* TO 'wp_user'@localhost;
+
+ctrl + d to exit mysql
+
+cd to /tmp directory
+cd /tmp
+
+Download wordpress
+wget https://wordpress.org/latest.tar.gz
+
+Unzip wordpress
+tar -xvf latest.tar.gz 
+
+This will Create a new wordpress folder
+
+
+Move wordpress folder to document root of Apache2
+sudo mv wordpress/ /var/www/html/
+
+In the browser, go to http://{ip_address}/wordpress
+Fill out the form:
+DATABASE Name: wp
+Usename: wp_user
+password: Testpassword@123
+DATABASE host: localhost
+table prefix: wp_
+
+It will throw an error. Follow instructions to correct error.
+
+Go to the /var/www/html/wordpress directory
+cd /var/www/html/wordpress
+
+Create a wp-config.php file and copy instructions from earlier error
+sudo vi wp-config.php
+
+Reload the browser and run installation. 
+
+Create a username and password
+
+Go back to http://{ip_address}/wordpress and see the wordpress sites working
+
+Go to Apache2 config folder
+cd /etc/apache2/sites-available/
+
+Open up sudo 000-default.conf file 
+sudo vi 000-default.conf 
+
+Change DocumentRoot /var/www/html/ to:
+    DocumentRoot /var/www/html/wordpress
+Add:
+    Alias '/wordpress/' '/var/www/html/wordpress/'
+
+Restart apache2
+sudo systemctl restart apache2 
+
+Get a domain Name
+
+create an A Type DNS record, Copy your ip address from your ec2 and paste it to the new A type, set TTL to 60
+
+ Add the A Type record
+
+
+sudo vi 000-default.conf 
+ServerName {padar.me}
+ServerAlias {www.padar.me}
+
+Restart apache2
+sudo systemctl restart apache2
+
+Login to wordpress admin
+Settings -> General -> 
+
+    WordPress Address (URL): http://paulboye.live
+    Site Address (URL): http://paulboye.live
+
+Install CertBot
+sudo apt install certbot python3-certbot-apache -y
+
+Run certbot
+sudo certbot --apache
+
+Follow prompts
+
+
+--- 
+
+cd /var/www/html/wordpress
+
+sudo touch .htaccess
+
+sudo chown -v :www-data /var/www/html/wordpress/.htaccess
+
+sudo chmod -v 664 /var/www/html/wordpress/.htaccess 
+
+sudo a2enmod rewrite
+
+sudo /etc/init.d/apache2 restart
+
+Go to wp admin -- http://{ip_address}/wordpress/wp-admin/
+
+Go to settings
+
+
